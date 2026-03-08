@@ -146,7 +146,7 @@ func (t *extendibleHashTable) hash(key []byte) uint32 {
  * @return the directory index
  */
 func (t *extendibleHashTable) keyToDirectoryIndex(key []byte, dirPage *htable.HashTableDirectoryPage) common.PageID {
-
+	panic("implement keyToDirectoryIndex")
 }
 
 /**
@@ -157,6 +157,7 @@ func (t *extendibleHashTable) keyToDirectoryIndex(key []byte, dirPage *htable.Ha
  * @return the bucket page_id corresponding to the input key
  */
 func (t *extendibleHashTable) keyToPageId(key []byte, dirPage *htable.HashTableDirectoryPage) common.PageID {
+	panic("implement keyToPageId")
 }
 
 /**
@@ -165,6 +166,7 @@ func (t *extendibleHashTable) keyToPageId(key []byte, dirPage *htable.HashTableD
  * @return a pointer to the directory page
  */
 func (t *extendibleHashTable) fetchDirectoryPage() *htable.HashTableDirectoryPage {
+	panic("implement fetchDirectoryPage")
 }
 
 /**
@@ -174,6 +176,7 @@ func (t *extendibleHashTable) fetchDirectoryPage() *htable.HashTableDirectoryPag
  * @return a pointer to a bucket page
  */
 func (t *extendibleHashTable) fetchBucketPage(bucketPageId common.PageID) *htable.HashTableBucketPage {
+	panic("implement fetchBucketPage")
 }
 
 /**
@@ -185,6 +188,7 @@ func (t *extendibleHashTable) fetchBucketPage(bucketPageId common.PageID) *htabl
  * @return whether or not the insertion was successful
  */
 func (t *extendibleHashTable) splitInsert(transaction common.Transaction, key []byte, value common.RID) bool {
+	panic("implement splitInsert")
 }
 
 /**

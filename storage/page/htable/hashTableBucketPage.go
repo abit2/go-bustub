@@ -7,7 +7,6 @@ package htable
 
 import (
 	"goostub/common"
-	"goostub/hash"
 	"goostub/storage/page"
 	"unsafe"
 )

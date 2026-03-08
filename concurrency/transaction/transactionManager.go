@@ -82,8 +82,8 @@ func (tm *TransactionManager) Abort(txn common.Transaction) {
 		item := indexWriteSet.Back().(IndexWriteRecord)
 		catalog := item.Catalog
 		// Metadata identifying the table that should be deleted from.
-		tableInfo := catalog.GetTable(item.TableOid)
-		indexInfo := catalog.GetIndex(item.IndexOid)
+		_ = catalog.GetTableByOid(item.TableOid) // tableInfo
+		_ = catalog.GetIndex(item.IndexOid)      // indexInfo
 		// TODO: left here
 	}
 

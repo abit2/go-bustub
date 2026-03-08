@@ -130,6 +130,7 @@ func (c *Catalog) GetTableByOid(tableOid common.TableOID) *TableInfo {
  */
 func (c *Catalog) CreateIndex(txn common.Transaction, indexName string, tableName string, schema *schema.Schema, keySchema *schema.Schema, keyAttrs []string, keysize uintptr, hashFunc ...hash.HashFunc) *IndexInfo {
 	// TODO
+	panic("implement CreateIndex")
 }
 
 func (c *Catalog) GetIndex(indexOid common.IndexOID) *IndexInfo {
