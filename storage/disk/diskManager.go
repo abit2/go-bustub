@@ -29,8 +29,10 @@ type DiskManager struct {
 	nextPageID common.PageID
 	numFlushes int
 	numWrites  int
+	numDeletes int
 	flushLog   bool
 	flushLogF  *futures.Future
+	freeSlots  []common.PageID
 }
 
 /**
@@ -199,23 +201,33 @@ func (d *DiskManager) ReadLog(logData []byte, size int, offset int64) bool {
 }
 
 /**
-* Allocate a page on disk.
+* Allocate a page on disk. Reuses a deallocated page ID if available.
 * @return the id of the allocated page
  */
 func (d *DiskManager) AllocatePage() common.PageID {
-	/* stupid Go! I can't just do
-	 * return d.nextPageID++ */
+	if len(d.freeSlots) > 0 {
+		n := len(d.freeSlots) - 1
+		pid := d.freeSlots[n]
+		d.freeSlots = d.freeSlots[:n]
+		return pid
+	}
 	ret := d.nextPageID
 	d.nextPageID++
 	return ret
 }
 
 /**
-* Deallocate a page on disk.
+* Deallocate a page on disk. Records the page ID for reuse by AllocatePage.
 * @param pageID id of the page to deallocate
-* Does nothing for now
  */
 func (d *DiskManager) DeallocatePage(pageID common.PageID) {
+	d.freeSlots = append(d.freeSlots, pageID)
+	d.numDeletes++
+}
+
+/** GetNumDeletes returns the number of pages deallocated. */
+func (d *DiskManager) GetNumDeletes() int {
+	return d.numDeletes
 }
 
 /** @return the number of disk flushes */

@@ -1,15 +1,11 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package types
 
 import (
-	"github.com/go-kit/kit/log/level"
 	"goostub/common"
 	"log"
 	"math"
+
+	"github.com/go-kit/kit/log/level"
 )
 
 type IntegerBaseType struct {

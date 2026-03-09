@@ -1,7 +1,3 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
 package concurrency
 
 import (
@@ -10,17 +6,24 @@ import (
 	"sync"
 )
 
+// LockMode matches BusTub LockManager::LockMode.
 type LockMode uint8
 
 const (
 	Shared LockMode = iota
 	Exclusive
+	IntentionShared
+	IntentionExclusive
+	SharedIntentionExclusive
 )
 
+// LockRequest holds a lock request (table or row).
 type LockRequest struct {
-	Mode    LockMode
-	TxnId   common.TxnID
-	Granted bool
+	Mode     LockMode
+	TxnId    common.TxnID
+	Granted  bool
+	TableOid common.TableOID
+	Rid      common.RID // unused for table locks
 }
 
 type LockRequestQueue struct {
@@ -88,6 +91,40 @@ func (l *LockManager) LockUpgrade(txn common.Transaction, rid common.RID) bool {
  * @return true if the unlock is successful, false otherwise
  */
 func (l *LockManager) Unlock(txn common.Transaction, rid common.RID) bool {
+	delete(txn.GetSharedLockSet(), rid)
+	delete(txn.GetExclusiveLockSet(), rid)
+	return true
+}
+
+// LockTable acquires a lock on the table in the given mode (stub: grants immediately).
+func (l *LockManager) LockTable(txn common.Transaction, tableOid common.TableOID, mode LockMode) bool {
+	txn.GetTableLockSet()[tableOid] = uint8(mode)
+	return true
+}
+
+// UnlockTable releases the table lock held by the transaction.
+func (l *LockManager) UnlockTable(txn common.Transaction, tableOid common.TableOID) bool {
+	delete(txn.GetTableLockSet(), tableOid)
+	return true
+}
+
+// LockRow acquires a lock on the row (tableOid, rid) in the given mode (stub: grants immediately).
+func (l *LockManager) LockRow(txn common.Transaction, tableOid common.TableOID, rid common.RID, mode LockMode) bool {
+	_ = tableOid
+	switch mode {
+	case Shared:
+		txn.GetSharedLockSet()[rid] = struct{}{}
+	case Exclusive, IntentionExclusive, SharedIntentionExclusive:
+		txn.GetExclusiveLockSet()[rid] = struct{}{}
+	case IntentionShared:
+		txn.GetSharedLockSet()[rid] = struct{}{}
+	}
+	return true
+}
+
+// UnlockRow releases the row lock held by the transaction.
+func (l *LockManager) UnlockRow(txn common.Transaction, tableOid common.TableOID, rid common.RID) bool {
+	_ = tableOid
 	delete(txn.GetSharedLockSet(), rid)
 	delete(txn.GetExclusiveLockSet(), rid)
 	return true

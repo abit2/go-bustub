@@ -1,16 +1,12 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package page
 
 import (
-	"github.com/stretchr/testify/assert"
 	"goostub/common"
 	"math/rand"
 	"testing"
 	"unsafe"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLSN(t *testing.T) {

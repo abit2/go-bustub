@@ -1,15 +1,11 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package types
 
 import (
 	"bytes"
-	"github.com/go-kit/kit/log/level"
 	"goostub/common"
 	"math"
+
+	"github.com/go-kit/kit/log/level"
 )
 
 type Value struct {
@@ -182,7 +178,7 @@ func (v Value) String() string {
 /*****Value Constructors******/
 /*****************************/
 
-//clumsy go implementation of constructor overloading
+// clumsy go implementation of constructor overloading
 func NewValue(id TypeID, data ...interface{}) *Value {
 	if len(data) == 0 {
 		return newNullValue(id)

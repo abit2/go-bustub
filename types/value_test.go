@@ -1,15 +1,11 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package types
 
 import (
-	"github.com/go-kit/kit/log/level"
-	"github.com/stretchr/testify/assert"
 	"goostub/common"
 	"testing"
+
+	"github.com/go-kit/kit/log/level"
+	"github.com/stretchr/testify/assert"
 )
 
 var testTypes = [...]TypeID{BOOLEAN, TINYINT, SMALLINT, INTEGER, BIGINT, DECIMAL}
