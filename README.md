@@ -1,3 +1,2 @@
-<img src="logo/goostub.png" alt="GoosTub Logo" height="200">
-
+This attempts to keep this project in sync with the [bustub project](https://github.com/cmu-db/bustub)
 -----------------

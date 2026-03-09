@@ -1,15 +1,11 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package transaction
 
 import (
-	"github.com/gammazero/deque"
 	"goostub/catalog"
 	"goostub/common"
 	"goostub/storage/table"
+
+	"github.com/gammazero/deque"
 )
 
 type TableWriteRecord struct {
@@ -41,6 +37,7 @@ func NewTransaction(txnId common.TxnID, isolationLevel ...common.IsolationLevel)
 		prevLSN:          common.InvalidLSN,
 		sharedLockSet:    map[common.RID]struct{}{},
 		exclusiveLockSet: map[common.RID]struct{}{},
+		tableLockSet:     map[common.TableOID]uint8{},
 		tableWriteSet:    &deque.Deque{},
 		indexWriteSet:    &deque.Deque{},
 	}
@@ -56,6 +53,7 @@ type txnInstance struct {
 	prevLSN          common.LSN
 	sharedLockSet    map[common.RID]struct{}
 	exclusiveLockSet map[common.RID]struct{}
+	tableLockSet     map[common.TableOID]uint8
 }
 
 func (t *txnInstance) GetTransactionId() common.TxnID {
@@ -75,6 +73,9 @@ func (t *txnInstance) GetSharedLockSet() map[common.RID]struct{} {
 }
 func (t *txnInstance) GetExclusiveLockSet() map[common.RID]struct{} {
 	return t.exclusiveLockSet
+}
+func (t *txnInstance) GetTableLockSet() map[common.TableOID]uint8 {
+	return t.tableLockSet
 }
 func (t *txnInstance) IsSharedLocked(rid common.RID) bool {
 	_, ok := t.sharedLockSet[rid]

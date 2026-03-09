@@ -1,8 +1,3 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package index
 
 import (
@@ -29,8 +24,20 @@ func (i *ExtendibleHashTableIndex) ScanKey(key *table.Tuple, result *[]common.RI
 }
 
 func (i *ExtendibleHashTableIndex) createIndex(m *IndexMetadata, bm *buffer.BufferPoolManager, args ...any) *ExtendibleHashTableIndex {
+	keySize := uint32(m.GetKeySchema().GetLength())
+	if len(args) > 0 {
+		if ks, ok := args[0].(uint32); ok {
+			keySize = ks
+		}
+	}
 	return &ExtendibleHashTableIndex{
-		// implement me
+		baseIndex: baseIndex{metadata: m},
+		container: extendibleHashTable{
+			bufferManager:   bm,
+			tableLatch:      common.NewRWLatch(),
+			keySize:         keySize,
+			directoryPageId: common.InvalidPageID,
+		},
 	}
 }
 
@@ -103,8 +110,12 @@ func (t *extendibleHashTable) getValue(transaction common.Transaction, key []byt
 func (t *extendibleHashTable) getGlobalDepth() uint32 {
 	t.tableLatch.RLock()
 	defer t.tableLatch.RUnlock()
-	defer common.Assert.True(t.bufferManager.UnpinPage(t.directoryPageId, false, nil))
-	return t.fetchDirectoryPage().GetGlobalDepth()
+	dirPage, guard := t.fetchDirectoryPage()
+	if guard == nil {
+		return 0
+	}
+	defer guard.Drop()
+	return dirPage.GetGlobalDepth()
 }
 
 /**
@@ -114,8 +125,12 @@ func (t *extendibleHashTable) getGlobalDepth() uint32 {
 func (t *extendibleHashTable) verifyIntegrity() {
 	t.tableLatch.RLock()
 	defer t.tableLatch.RUnlock()
-	t.fetchDirectoryPage().VerifyIntegrity()
-	common.Assert.True(t.bufferManager.UnpinPage(t.directoryPageId, false, nil))
+	dirPage, guard := t.fetchDirectoryPage()
+	if guard == nil {
+		return
+	}
+	defer guard.Drop()
+	dirPage.VerifyIntegrity()
 }
 
 /**
@@ -130,53 +145,54 @@ func (t *extendibleHashTable) hash(key []byte) uint32 {
 }
 
 /**
- * KeyToDirectoryIndex - maps a key to a directory index
- *
- * In Extendible Hashing we map a key to a directory index
- * using the following hash + mask function.
- *
- * DirectoryIndex = Hash(key) & GLOBAL_DEPTH_MASK
- *
- * where GLOBAL_DEPTH_MASK is a mask with exactly GLOBAL_DEPTH 1's from LSB
- * upwards.  For example, global depth 3 corresponds to 0x00000007 in a 32-bit
- * representation.
- *
- * @param key the key to use for lookup
- * @param dir_page to use for lookup of global depth
- * @return the directory index
+ * KeyToDirectoryIndex - maps a key to a directory index (Hash(key) & GLOBAL_DEPTH_MASK).
  */
-func (t *extendibleHashTable) keyToDirectoryIndex(key []byte, dirPage *htable.HashTableDirectoryPage) common.PageID {
-	panic("implement keyToDirectoryIndex")
+func (t *extendibleHashTable) keyToDirectoryIndex(key []byte, dirPage *htable.HashTableDirectoryPage) uint32 {
+	h := t.hash(key)
+	return dirPage.HashToBucketIndex(h)
 }
 
 /**
  * Get the bucket page_id corresponding to a key.
- *
- * @param key the key for lookup
- * @param dir_page a pointer to the hash table's directory page
- * @return the bucket page_id corresponding to the input key
  */
 func (t *extendibleHashTable) keyToPageId(key []byte, dirPage *htable.HashTableDirectoryPage) common.PageID {
-	panic("implement keyToPageId")
+	bucketIdx := t.keyToDirectoryIndex(key, dirPage)
+	return dirPage.GetBucketPageId(bucketIdx)
 }
 
 /**
  * Fetches the directory page from the buffer pool manager.
- *
- * @return a pointer to the directory page
+ * Caller must call guard.Drop() when done.
  */
-func (t *extendibleHashTable) fetchDirectoryPage() *htable.HashTableDirectoryPage {
-	panic("implement fetchDirectoryPage")
+func (t *extendibleHashTable) fetchDirectoryPage() (*htable.HashTableDirectoryPage, *buffer.ReadPageGuard) {
+	guard, ok := t.bufferManager.ReadPage(t.directoryPageId)
+	if !ok {
+		return nil, nil
+	}
+	data := guard.GetData()
+	if data == nil || len(data) < htable.DirOffsetBucketPageIds+512*4 {
+		guard.Drop()
+		return nil, nil
+	}
+	dirPage := htable.NewHashTableDirectoryPage(data)
+	return dirPage, guard
 }
 
 /**
- * Fetches the a bucket page from the buffer pool manager using the bucket's page_id.
- *
- * @param bucket_page_id the page_id to fetch
- * @return a pointer to a bucket page
+ * Fetches a bucket page from the buffer pool manager.
+ * Caller must call guard.Drop() when done.
  */
-func (t *extendibleHashTable) fetchBucketPage(bucketPageId common.PageID) *htable.HashTableBucketPage {
-	panic("implement fetchBucketPage")
+func (t *extendibleHashTable) fetchBucketPage(bucketPageId common.PageID) (*htable.HashTableBucketPage, *buffer.ReadPageGuard) {
+	guard, ok := t.bufferManager.ReadPage(bucketPageId)
+	if !ok {
+		return nil, nil
+	}
+	data := guard.GetData()
+	if data == nil {
+		guard.Drop()
+		return nil, nil
+	}
+	return htable.NewBucketPageView(data, t.keySize), guard
 }
 
 /**

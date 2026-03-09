@@ -10,13 +10,30 @@ import (
 )
 
 type ClockReplacer struct {
-	// Student's code
+	// Student's code: add fields for clock replacement policy
 }
 
 // Student: implement everything below
 
-func NewClockReplacer(numPages int64) *ClockReplacer
-func (r ClockReplacer) Victim(frameId *common.FrameID) bool
-func (r ClockReplacer) Pin(frameId common.FrameID)
-func (r ClockReplacer) Unpin(frameId common.FrameID)
-func (r ClockReplacer) Size() int64
+func NewClockReplacer(numPages int64) *ClockReplacer {
+	// TODO: implement
+	return &ClockReplacer{}
+}
+
+func (r *ClockReplacer) Victim(frameId *common.FrameID) bool {
+	// TODO: implement
+	return false
+}
+
+func (r *ClockReplacer) Pin(frameId common.FrameID) {
+	// TODO: implement
+}
+
+func (r *ClockReplacer) Unpin(frameId common.FrameID) {
+	// TODO: implement
+}
+
+func (r *ClockReplacer) Size() int64 {
+	// TODO: implement
+	return 0
+}

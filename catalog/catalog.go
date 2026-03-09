@@ -1,8 +1,3 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package catalog
 
 import (
@@ -24,13 +19,25 @@ type TableInfo struct {
 	Oid    common.TableOID
 }
 
+// IndexType matches BusTub IndexType (B+ tree, hash, etc.).
+type IndexType uint8
+
+const (
+	BPlusTreeIndex IndexType = iota
+	HashTableIndex
+	STLOrderedIndex
+	STLUnorderedIndex
+)
+
 type IndexInfo struct {
-	KeySchema schema.Schema // schema for the index key
-	Name      string
-	Index     *index.Index
-	IndexOid  common.IndexOID
-	TableName string
-	KeySize   uintptr // size of the index key in bytes
+	KeySchema    schema.Schema
+	Name         string
+	Index        index.Index
+	IndexOid     common.IndexOID
+	TableName    string
+	KeySize      uintptr
+	IsPrimaryKey bool
+	IndexType    IndexType
 }
 
 /**
@@ -128,12 +135,25 @@ func (c *Catalog) GetTableByOid(tableOid common.TableOID) *TableInfo {
  * @param (optional)hash_function The hash function for the index, none = default
  * @return A (non-owning) pointer to the metadata of the new table
  */
-func (c *Catalog) CreateIndex(txn common.Transaction, indexName string, tableName string, schema *schema.Schema, keySchema *schema.Schema, keyAttrs []string, keysize uintptr, hashFunc ...hash.HashFunc) *IndexInfo {
-	// TODO
+// CreateIndex creates a new index (stub: panics). Signature matches BusTub with isPrimaryKey and indexType.
+func (c *Catalog) CreateIndex(txn common.Transaction, indexName string, tableName string, schema *schema.Schema, keySchema *schema.Schema, keyAttrs []string, keysize uintptr, isPrimaryKey bool, indexType IndexType, hashFunc ...hash.HashFunc) *IndexInfo {
+	_ = txn
+	_ = indexName
+	_ = tableName
+	_ = schema
+	_ = keySchema
+	_ = keyAttrs
+	_ = keysize
+	_ = isPrimaryKey
+	_ = indexType
+	_ = hashFunc
+	// TODO: implement
 	panic("implement CreateIndex")
 }
 
 func (c *Catalog) GetIndex(indexOid common.IndexOID) *IndexInfo {
-	//TODO
+	if info, ok := c.indexes[indexOid]; ok {
+		return info
+	}
 	return nil
 }

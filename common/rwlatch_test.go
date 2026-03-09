@@ -1,14 +1,10 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package common
 
 import (
-	"github.com/stretchr/testify/assert"
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type counter struct {

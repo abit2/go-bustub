@@ -1,15 +1,11 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package types
 
 import (
 	"bytes"
 	"errors"
-	"github.com/go-kit/kit/log/level"
 	"goostub/common"
+
+	"github.com/go-kit/kit/log/level"
 )
 
 type TypeID int

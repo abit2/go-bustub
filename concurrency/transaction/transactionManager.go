@@ -1,8 +1,3 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package transaction
 
 import (
@@ -27,7 +22,7 @@ func (tm *TransactionManager) Begin(txn common.Transaction, isoLevel ...common.I
 	tm.globalTxnLatch.RLock()
 	if txn == nil {
 		txn = NewTransaction(tm.nextTxnId, isoLevel...)
-		atomic.AddInt32((*int32)(&tm.nextTxnId), 1)
+		atomic.AddInt64((*int64)(&tm.nextTxnId), 1)
 	}
 	TxnMapMutex.Lock()
 	TxnMap[txn.GetTransactionId()] = txn
@@ -90,14 +85,13 @@ func (tm *TransactionManager) Abort(txn common.Transaction) {
 }
 
 func (tm *TransactionManager) releaseLocks(txn common.Transaction) {
-	lockSet := make(map[common.RID]struct{})
 	for item := range txn.GetExclusiveLockSet() {
-		lockSet[item] = struct{}{}
+		tm.lockManager.Unlock(txn, item)
 	}
 	for item := range txn.GetSharedLockSet() {
-		lockSet[item] = struct{}{}
-	}
-	for item := range lockSet {
 		tm.lockManager.Unlock(txn, item)
+	}
+	for tableOid := range txn.GetTableLockSet() {
+		tm.lockManager.UnlockTable(txn, tableOid)
 	}
 }

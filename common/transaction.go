@@ -1,12 +1,8 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package common
 
 import (
 	"fmt"
+
 	"github.com/gammazero/deque"
 )
 
@@ -19,8 +15,9 @@ type Transaction interface {
 	GetIsolationLevel() IsolationLevel
 	GetWriteSet() *deque.Deque             // deque of TableWriteRecord
 	GetIndexWriteSet() *deque.Deque        // deque of IndexWriteRecord
-	GetSharedLockSet() map[RID]struct{}    // resources under shared lock
-	GetExclusiveLockSet() map[RID]struct{} // resources under ex lock
+	GetSharedLockSet() map[RID]struct{}       // resources under shared lock
+	GetExclusiveLockSet() map[RID]struct{}    // resources under ex lock
+	GetTableLockSet() map[TableOID]uint8      // table OID -> lock mode (for LockManager)
 	IsSharedLocked(RID) bool
 	IsExclusiveLocked(RID) bool
 	GetState() TransactionState

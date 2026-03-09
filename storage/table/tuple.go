@@ -1,19 +1,15 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package table
 
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/go-kit/kit/log/level"
 	"goostub/common"
 	"goostub/schema"
 	"goostub/types"
 	"log"
 	"reflect"
+
+	"github.com/go-kit/kit/log/level"
 )
 
 type Tuple struct {
@@ -74,6 +70,16 @@ func newTupleFromRID(rid common.RID) *Tuple {
 	return &Tuple{
 		rid: rid,
 	}
+}
+
+// NewTupleFromData creates a tuple with the given RID and raw data (for TablePage GetTuple).
+func NewTupleFromData(rid common.RID, data []byte) *Tuple {
+	if data == nil {
+		return &Tuple{rid: rid}
+	}
+	d := make([]byte, len(data))
+	copy(d, data)
+	return &Tuple{allocated: true, rid: rid, data: d}
 }
 
 func newTupleFromValues(vals []*types.Value, schema *schema.Schema) *Tuple {

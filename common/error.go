@@ -1,14 +1,10 @@
-// Copyright (c) 2021 Qitian Zeng
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
 package common
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"log"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type ErrID int
